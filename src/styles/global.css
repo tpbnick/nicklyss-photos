@@ -849,23 +849,30 @@ html.filters-pending .explorer {
   .filters {
     position: static;
     max-height: none;
-    flex-direction: row;
-    gap: 18px;
-    overflow-x: auto;
-    padding-bottom: 6px;
+    flex-direction: column;
+    gap: 16px;
+    overflow: visible;
+    padding-bottom: 0;
   }
 
   .filter-block {
-    min-width: max-content;
+    min-width: 0;
   }
 
   .chip-list {
     flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .filter-block:first-child .chip-list {
     flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 6px;
   }
 
   .chip {
     width: auto;
+    flex: none;
   }
 }
 

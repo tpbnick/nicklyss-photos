@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-14T18:14:06Z",
+  "generatedAt": "2026-10-14T22:15:26Z",
   "places": [
     {
       "slug": "2025-germany",
@@ -7,12 +7,15 @@
       "location": "Germany",
       "folder": "2025/Germany",
       "title": "Germany",
-      "dates": "2025",
-      "description": "",
-      "tags": [],
+      "dates": "December, 2025",
+      "description": "A winter trip to Bavaria.  Frankfurt, Fischbach bei Dahn, Munich, Garmisch, Berchtesgaden, and more.",
+      "tags": [
+        "international",
+        "germany"
+      ],
       "lat": 51.1657,
       "lng": 10.4515,
-      "cover": "/previews/2025-germany/6e05d1b54be38df3c5db.webp",
+      "cover": "/previews/2025-germany/d9958b53bd28f1886f69.webp",
       "photos": [
         {
           "src": "https://cdn.nickplatt.dev/Photos/2025/Germany/6879/002_0.JPG",
