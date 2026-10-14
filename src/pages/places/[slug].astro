@@ -1,0 +1,53 @@
+---
+import Base from "../../layouts/Base.astro";
+import PhotoAlbum from "../../components/PhotoAlbum";
+import catalog from "../../data/catalog.json";
+import type { Catalog, Place } from "../../lib/types";
+
+export function getStaticPaths() {
+  const data = catalog as Catalog;
+  return data.places.map((place) => ({
+    params: { slug: place.slug },
+    props: { place },
+  }));
+}
+
+const { place } = Astro.props as { place: Place };
+const description = place.description || `${place.title}, ${place.dates}`;
+---
+
+<Base title={place.title} description={description}>
+  <article class="place" transition:animate="fade">
+    <a class="back" href="/">
+      <span aria-hidden="true">←</span>
+      All places
+    </a>
+    <p class="eyebrow">
+      {place.location !== place.title && (
+        <>
+          {place.location}
+          {" · "}
+        </>
+      )}
+      <a href={`/?year=${place.year}`}>{place.year}</a>
+    </p>
+    <h1>{place.title}</h1>
+    <p class="place-dates">{place.dates}</p>
+    {place.description && <p class="place-description">{place.description}</p>}
+    <div class="place-meta">
+      {place.tags.map((tag) => (
+        <a class="tag" href={`/?tag=${encodeURIComponent(tag)}`}>
+          {tag}
+        </a>
+      ))}
+      <span class="photo-count">
+        {place.photos.length} {place.photos.length === 1 ? "photo" : "photos"}
+      </span>
+    </div>
+    {place.photos.length > 0 ? (
+      <PhotoAlbum client:load photos={place.photos} />
+    ) : (
+      <p class="missing">No photos in this folder yet.</p>
+    )}
+  </article>
+</Base>

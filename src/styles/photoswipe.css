@@ -1,0 +1,21 @@
+.pswp {
+  --pswp-bg: rgba(8, 8, 7, 0.96);
+  --pswp-placeholder-bg: transparent;
+  --pswp-icon-color: #ededed;
+  --pswp-icon-color-secondary: rgba(237, 237, 237, 0.72);
+}
+
+.pswp__counter {
+  font-family: "Outfit Variable", Outfit, sans-serif;
+  letter-spacing: 0.08em;
+  font-size: 13px;
+  opacity: 0.82;
+}
+
+.pswp__button {
+  transition: opacity 0.2s ease;
+}
+
+.pswp__button:hover {
+  opacity: 0.72;
+}

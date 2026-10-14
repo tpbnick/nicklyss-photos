@@ -1,2 +1,55 @@
-# nicklyss-photos
-Simple photos app
+# NickLyss
+
+A photo journal for the folders in [cdn.nickplatt.dev/Photos](https://cdn.nickplatt.dev/Photos). Each `year/location` folder becomes a page. The home page is a map plus a filterable index.
+
+## Add a trip
+
+1. Put photos in `Photos/<year>/<location>/` on the CDN.
+2. Add a markdown file in that folder:
+
+```md
+# Title
+Blue Ridge Mountains
+
+## Dates
+October 8, 2017
+
+## Description
+A weekend along the parkway.
+
+## Tags
+hiking, fall, virginia
+
+## Cover
+IMG_0420.jpg
+```
+
+`Cover` is the homepage photo. Use the filename from that folder, or a path like `6879/002_0.JPG` when the photo is nested. Without it, the first landscape photo is used.
+
+Optional, when the folder name is not a precise pin:
+
+```md
+## Coordinates
+37.90, -79.05
+```
+
+3. Rebuild the catalog, then the site:
+
+```bash
+npm run catalog
+npm run dev
+```
+
+`npm run catalog` only downloads photos that do not already have a preview. Pass `--force` to rebuild every preview:
+
+```bash
+npm run catalog -- --force
+```
+
+Pins for new places are geocoded once and saved in `scripts/geocache.json`. Edit that file to move a pin, then rerun the catalog.
+
+## Scripts
+
+- `npm run catalog` reads the CDN and writes `src/data/catalog.json` plus `public/previews/`
+- `npm run dev` starts the site
+- `npm run build` writes a static site to `dist/`

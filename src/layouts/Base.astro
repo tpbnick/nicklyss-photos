@@ -1,0 +1,211 @@
+---
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/outfit";
+import { ClientRouter } from "astro:transitions";
+import AboutModal from "../components/AboutModal";
+import ThemeToggle from "../components/ThemeToggle";
+import catalog from "../data/catalog.json";
+import { commitShort, commitUrl, latestUpdate, repoUrl } from "../lib/site";
+import type { Catalog } from "../lib/types";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  chrome?: boolean;
+  wide?: boolean;
+}
+
+const {
+  title = "NickLyss",
+  description = "NickLyss, a photo journal.",
+  chrome = true,
+  wide = false,
+} = Astro.props;
+
+const pageTitle = title === "NickLyss" ? "NickLyss" : `${title} · NickLyss`;
+const data = catalog as Catalog;
+const years = data.places.map((place) => place.year);
+const thisYear = new Date().getFullYear();
+const firstYear = years.length ? Math.min(...years) : thisYear;
+const copyrightYear = firstYear < thisYear ? `${firstYear}–${thisYear}` : String(thisYear);
+const updated = latestUpdate(data.generatedAt);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#100f0d" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{pageTitle}</title>
+    <ClientRouter />
+    <script is:inline>
+      (function () {
+        function preferredTheme() {
+          try {
+            var saved = localStorage.getItem("theme");
+            if (saved === "light" || saved === "dark") return saved;
+          } catch (e) {}
+          return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        function paintChrome() {
+          var theme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+          var color = theme === "dark" ? "#100f0d" : "#f4f5f7";
+          document.querySelectorAll('meta[name="theme-color"]').forEach(function (meta) {
+            meta.setAttribute("content", color);
+          });
+        }
+        function applyTheme() {
+          document.documentElement.dataset.theme = preferredTheme();
+          paintChrome();
+        }
+        applyTheme();
+        document.addEventListener("astro:before-swap", function (event) {
+          var theme = document.documentElement.dataset.theme || preferredTheme();
+          var color = theme === "dark" ? "#100f0d" : "#f4f5f7";
+          event.newDocument.documentElement.dataset.theme = theme;
+          event.newDocument.querySelectorAll('meta[name="theme-color"]').forEach(function (meta) {
+            meta.setAttribute("content", color);
+          });
+        });
+        document.addEventListener("astro:after-swap", applyTheme);
+        new MutationObserver(paintChrome).observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
+        matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
+          try {
+            if (localStorage.getItem("theme")) return;
+          } catch (e) {}
+          applyTheme();
+        });
+      })();
+    </script>
+    <script is:inline>
+      (function () {
+        var frame = 0;
+        function button() {
+          return document.querySelector(".to-top");
+        }
+        function update() {
+          var el = button();
+          if (!el) return;
+          var show = window.scrollY > 360;
+          el.classList.toggle("is-visible", show);
+          el.tabIndex = show ? 0 : -1;
+          el.toggleAttribute("inert", !show);
+          if (!show && document.activeElement === el) el.blur();
+        }
+        function cancel() {
+          if (frame) cancelAnimationFrame(frame);
+          frame = 0;
+        }
+        function scrollTop() {
+          cancel();
+          var start = window.scrollY;
+          if (start <= 0) return;
+          if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            window.scrollTo(0, 0);
+            update();
+            return;
+          }
+          var duration = Math.min(340, Math.max(180, start * 0.12));
+          var startTime = 0;
+          function step(now) {
+            if (!startTime) startTime = now;
+            var t = Math.min(1, (now - startTime) / duration);
+            var eased = 1 - Math.pow(1 - t, 3);
+            window.scrollTo(0, Math.round(start * (1 - eased)));
+            if (t < 1) frame = requestAnimationFrame(step);
+            else {
+              frame = 0;
+              update();
+            }
+          }
+          frame = requestAnimationFrame(step);
+        }
+        document.addEventListener("click", function (event) {
+          var node = event.target;
+          if (node && node.nodeType !== 1) node = node.parentElement;
+          var target = node && node.closest ? node.closest(".to-top") : null;
+          if (!target) return;
+          event.preventDefault();
+          scrollTop();
+        });
+        window.addEventListener("scroll", update, { passive: true });
+        window.addEventListener(
+          "wheel",
+          function () {
+            cancel();
+          },
+          { passive: true },
+        );
+        window.addEventListener(
+          "touchstart",
+          function () {
+            cancel();
+          },
+          { passive: true },
+        );
+        document.addEventListener("astro:after-swap", update);
+        document.addEventListener("astro:page-load", update);
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", update);
+        else update();
+      })();
+    </script>
+  </head>
+  <body class={wide ? "page-wide" : undefined}>
+    <a class="skip" href="#content">Skip to content</a>
+    {
+      chrome && (
+        <header class="site-header">
+          <a class="brand" href="/">
+            <span class="brand-mark">NickLyss</span>
+            <span class="brand-sub">Photo journal</span>
+          </a>
+          <div class="header-actions">
+            <nav aria-label="Site">
+              <a class="nav-link" href="#about" data-about>
+                About
+              </a>
+            </nav>
+            <form class="search" action="/" method="get" role="search">
+              <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <path d="M16 16.5 20 20.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+              <input type="search" name="q" placeholder="Search places" aria-label="Search places" />
+            </form>
+            <ThemeToggle client:load />
+          </div>
+        </header>
+      )
+    }
+    {chrome ? (
+      <main id="content">
+        <slot />
+      </main>
+    ) : (
+      <slot />
+    )}
+    <footer class="site-footer">
+      <p>Photographs © {copyrightYear} NickLyss</p>
+    </footer>
+    <AboutModal client:load updated={updated} commit={commitShort} commitUrl={commitUrl} repoUrl={repoUrl} />
+    <button class="to-top" type="button" aria-label="Back to top" tabindex="-1">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M12 18V6M6.5 11.5 12 6l5.5 5.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+    </button>
+  </body>
+</html>

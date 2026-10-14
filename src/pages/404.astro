@@ -1,0 +1,17 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Not found" description="That page is not in the journal.">
+  <article class="place" transition:animate="fade">
+    <a class="back" href="/">
+      <span aria-hidden="true">←</span>
+      All places
+    </a>
+    <p class="eyebrow">404</p>
+    <h1>Not found</h1>
+    <div class="about-copy">
+      <p>That page is not in the journal.</p>
+    </div>
+  </article>
+</Base>

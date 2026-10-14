@@ -1,0 +1,91 @@
+{
+  "blue ridge mountains, va": [
+    37.9,
+    -79.05
+  ],
+  "fredericksburg, va": [
+    38.3032,
+    -77.4605
+  ],
+  "gettysburg, pa": [
+    39.8309,
+    -77.2311
+  ],
+  "hollywood, ca": [
+    34.1016,
+    -118.3267
+  ],
+  "juneau, ak": [
+    58.3019,
+    -134.4197
+  ],
+  "ketchikan, ak": [
+    55.3422,
+    -131.6461
+  ],
+  "seattle, wa": [
+    47.6062,
+    -122.3321
+  ],
+  "skagway, ak": [
+    59.4583,
+    -135.3139
+  ],
+  "disneyland, ca": [
+    33.8121,
+    -117.919
+  ],
+  "laguna, ca": [
+    33.5427,
+    -117.7854
+  ],
+  "pch & monterey, ca": [
+    36.5552,
+    -121.9233
+  ],
+  "san francisco, ca": [
+    37.7749,
+    -122.4194
+  ],
+  "yosemite, ca": [
+    37.7459,
+    -119.5936
+  ],
+  "new york city, ny": [
+    40.758,
+    -73.9855
+  ],
+  "appalachan trail, md": [
+    39.648,
+    -77.492
+  ],
+  "random, ca": null,
+  "appalachian trail, md": [
+    39.545,
+    -77.72
+  ],
+  "disneyworld, fl": [
+    28.3772,
+    -81.5707
+  ],
+  "oahu, hi": [
+    21.4389,
+    -158.0001
+  ],
+  "pennhurst asylum, pa": [
+    40.185,
+    -75.688
+  ],
+  "philadelphia, pa": [
+    39.9526,
+    -75.1652
+  ],
+  "germany": [
+    51.1657,
+    10.4515
+  ],
+  "grand canyon": [
+    36.0544,
+    -112.1401
+  ]
+}

@@ -1,0 +1,35 @@
+---
+import Base from "../layouts/Base.astro";
+import HomeApp from "../components/HomeApp";
+import catalog from "../data/catalog.json";
+import { readFilters } from "../lib/filters";
+import type { Catalog, PlaceSummary } from "../lib/types";
+
+const data = catalog as Catalog;
+const places: PlaceSummary[] = data.places.map(({ photos, ...place }) => ({
+  ...place,
+  photoCount: photos.length,
+}));
+
+const initialFilters = readFilters(Astro.url.searchParams);
+---
+
+<Base chrome={false} wide description="NickLyss, a photo journal of places.">
+  <script is:inline data-astro-rerun>
+    (function () {
+      var root = document.documentElement;
+      if (root.dataset.filtersReady === "1") return;
+      var params = new URLSearchParams(location.search);
+      if (params.get("q") || params.get("year") || params.get("tag")) root.classList.add("filters-pending");
+    })();
+  </script>
+  <div transition:animate="fade">
+    <HomeApp
+      client:load
+      places={places}
+      initialQuery={initialFilters.query}
+      initialYears={initialFilters.years}
+      initialTags={initialFilters.tags}
+    />
+  </div>
+</Base>
