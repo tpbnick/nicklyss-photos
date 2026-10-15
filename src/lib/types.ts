@@ -3,6 +3,8 @@ export type Photo = {
   preview: string;
   width: number;
   height: number;
+  lat: number | null;
+  lng: number | null;
   alt: string;
 };
 
@@ -14,6 +16,7 @@ export type Place = {
   title: string;
   dates: string;
   description: string;
+  notes: string;
   tags: string[];
   lat: number | null;
   lng: number | null;
@@ -26,6 +29,6 @@ export type Catalog = {
   places: Place[];
 };
 
-export type PlaceSummary = Omit<Place, "photos"> & {
+export type PlaceSummary = Omit<Place, "photos" | "notes"> & {
   photoCount: number;
 };

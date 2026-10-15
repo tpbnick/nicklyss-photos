@@ -137,11 +137,6 @@ export default function HomeApp({ places, initialQuery, initialYears, initialTag
           <span className="brand-sub">Photo journal</span>
         </a>
         <div className="header-actions">
-          <nav aria-label="Site">
-            <a className="nav-link" href="#about" data-about>
-              About
-            </a>
-          </nav>
           <form className="search" role="search" onSubmit={(event) => event.preventDefault()}>
             <SearchIcon className="search-icon" />
             <input

@@ -17,6 +17,10 @@ October 8, 2017
 ## Description
 A weekend along the parkway.
 
+## Notes
+The overlook was closed, so we walked the ridge instead.
+Hours are on the [park site](https://www.nps.gov/blri/).
+
 ## Tags
 hiking, fall, virginia
 
@@ -50,7 +54,7 @@ Pins for new places are geocoded once and saved in `scripts/geocache.json`. Edit
 
 ## Scripts
 
-- `npm run catalog` reads the CDN and writes `src/data/catalog.json` plus `public/previews/`
+- `npm run catalog` reads the CDN and writes `src/data/catalog.json` plus `public/previews/`. Photos with GPS in their EXIF get a map on that place's page.
 - `npm run dev` starts the site
 - `npm run build` writes a static site to `dist/`
 

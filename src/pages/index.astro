@@ -6,7 +6,7 @@ import { readFilters } from "../lib/filters";
 import type { Catalog, PlaceSummary } from "../lib/types";
 
 const data = catalog as Catalog;
-const places: PlaceSummary[] = data.places.map(({ photos, ...place }) => ({
+const places: PlaceSummary[] = data.places.map(({ photos, notes: _notes, ...place }) => ({
   ...place,
   photoCount: photos.length,
 }));

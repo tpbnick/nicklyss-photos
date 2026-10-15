@@ -1,6 +1,7 @@
 ---
 import "@fontsource-variable/fraunces";
-import "@fontsource-variable/outfit";
+import "@fontsource/atkinson-hyperlegible/400.css";
+import "@fontsource/atkinson-hyperlegible/700.css";
 import { ClientRouter } from "astro:transitions";
 import AboutModal from "../components/AboutModal";
 import ThemeToggle from "../components/ThemeToggle";
@@ -169,11 +170,6 @@ const updated = latestUpdate(data.generatedAt);
             <span class="brand-sub">Photo journal</span>
           </a>
           <div class="header-actions">
-            <nav aria-label="Site">
-              <a class="nav-link" href="#about" data-about>
-                About
-              </a>
-            </nav>
             <form class="search" action={sitePath("/")} method="get" role="search">
               <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
@@ -195,6 +191,7 @@ const updated = latestUpdate(data.generatedAt);
     )}
     <footer class="site-footer">
       <p>Photographs © {copyrightYear} NickLyss</p>
+      <a class="nav-link" href="#about" data-about>About</a>
     </footer>
     <AboutModal client:load updated={updated} commit={commitShort} commitUrl={commitUrl} repoUrl={repoUrl} />
     <button class="to-top" type="button" aria-label="Back to top" tabindex="-1">

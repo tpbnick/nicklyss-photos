@@ -1,7 +1,8 @@
 ---
 import Base from "../../layouts/Base.astro";
-import PhotoAlbum from "../../components/PhotoAlbum";
+import PlaceGallery from "../../components/PlaceGallery";
 import catalog from "../../data/catalog.json";
+import { noteParts } from "../../lib/notes";
 import type { Catalog, Place } from "../../lib/types";
 import { sitePath } from "../../lib/url";
 
@@ -35,6 +36,24 @@ const description = place.description || `${place.title}, ${place.dates}`;
     <h1>{place.title}</h1>
     <p class="place-dates">{place.dates}</p>
     {place.description && <p class="place-description">{place.description}</p>}
+    {
+      place.notes && (
+        <div class="place-notes">
+          <p class="place-notes-label">Notes</p>
+          <p>
+            {
+              noteParts(place.notes).map((part) =>
+                part.kind === "link" ? (
+                  <a href={part.href.startsWith("/") ? sitePath(part.href) : part.href}>{part.label}</a>
+                ) : (
+                  part.text
+                ),
+              )
+            }
+          </p>
+        </div>
+      )
+    }
     <div class="place-meta">
       {place.tags.map((tag) => (
         <a class="tag" href={sitePath(`/?tag=${encodeURIComponent(tag)}`)}>
@@ -46,7 +65,7 @@ const description = place.description || `${place.title}, ${place.dates}`;
       </span>
     </div>
     {place.photos.length > 0 ? (
-      <PhotoAlbum client:load photos={place.photos} />
+      <PlaceGallery client:load photos={place.photos} />
     ) : (
       <p class="missing">No photos in this folder yet.</p>
     )}

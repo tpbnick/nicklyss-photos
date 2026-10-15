@@ -10,7 +10,7 @@
   --shadow: 0 18px 40px rgba(22, 28, 40, 0.08);
   --map-bg: #e6e8ee;
   --header-h: 76px;
-  --sans: "Outfit Variable", Outfit, ui-sans-serif, system-ui, sans-serif;
+  --sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
   --serif: "Fraunces Variable", Fraunces, "Iowan Old Style", Georgia, serif;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -117,10 +117,10 @@ button {
 
 .brand-mark {
   margin: 0;
-  font-family: var(--serif);
-  font-size: 28px;
-  font-weight: 520;
-  letter-spacing: -0.04em;
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1;
   white-space: nowrap;
 }
@@ -249,7 +249,11 @@ html[data-theme="dark"] .icon-moon {
   place-items: center;
   width: 28px;
   height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .map-pin-dot {
@@ -285,9 +289,15 @@ html[data-theme="dark"] .icon-moon {
 }
 
 .map-pin:hover .map-pin-label,
-.map-pin:focus-visible .map-pin-label {
+.map-pin:focus-visible .map-pin-label,
+.map-pin.is-selected .map-pin-label {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+.map-pin.is-selected .map-pin-dot {
+  transform: scale(1.35);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .explorer {
@@ -482,7 +492,7 @@ html[data-theme="dark"] .icon-moon {
 .filter-head h2 {
   margin: 0;
   font-size: 12px;
-  font-weight: 560;
+  font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -603,6 +613,31 @@ html[data-theme="dark"] .icon-moon {
   white-space: pre-wrap;
 }
 
+.place-notes {
+  max-width: 68ch;
+  margin-top: 22px;
+}
+
+.place-notes-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.place-notes p:last-child {
+  margin: 8px 0 0;
+  font-size: 16px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.place-notes a {
+  color: var(--accent);
+  text-underline-offset: 0.15em;
+}
+
 .about-copy {
   max-width: 62ch;
   margin-top: 18px;
@@ -625,6 +660,33 @@ html[data-theme="dark"] .icon-moon {
 .photo-count {
   color: var(--muted);
   font-size: 14px;
+}
+
+.place-map {
+  height: 280px;
+  margin-top: 22px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--map-bg);
+}
+
+.place-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.place-filter p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.place-filter + .place-album {
+  margin-top: 16px;
 }
 
 .place-album {
@@ -681,6 +743,7 @@ html[data-theme="dark"] .icon-moon {
 .nav-link:focus-visible,
 .back:focus-visible,
 .eyebrow a:focus-visible,
+.place-notes a:focus-visible,
 .text-button:focus-visible,
 .tag:focus-visible,
 .place-album button:focus-visible,
@@ -705,9 +768,13 @@ html.filters-pending .explorer {
 }
 
 .site-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px 22px;
+  flex-wrap: wrap;
   width: min(var(--page-max), calc(100% - var(--page-gutter)));
   margin: 0 auto;
-  padding: 22px 0 32px;
+  padding: 22px 72px 32px 0;
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 13px;
@@ -746,9 +813,9 @@ html.filters-pending .explorer {
 
 .about-dialog h2 {
   margin: 8px 0 0;
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: 32px;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 1;
 }
@@ -913,6 +980,10 @@ html.filters-pending .explorer {
   .map-frame {
     height: 42vh;
     height: 42dvh;
+  }
+
+  .place-map {
+    height: 220px;
   }
 
   .explorer,

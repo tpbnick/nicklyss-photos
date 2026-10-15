@@ -91,13 +91,16 @@ class LinkParser(HTMLParser):
             self._cls = ""
 
 
-def fetch_bytes(url: str, attempts: int = 4) -> bytes:
+def fetch_bytes(url: str, attempts: int = 4, headers: dict[str, str] | None = None, limit: int | None = None) -> bytes:
     last: Exception | None = None
+    request_headers = {"User-Agent": UA}
+    if headers:
+        request_headers.update(headers)
     for attempt in range(attempts):
         try:
-            request = urllib.request.Request(url, headers={"User-Agent": UA})
+            request = urllib.request.Request(url, headers=request_headers)
             with urllib.request.urlopen(request, timeout=180) as response:
-                return response.read()
+                return response.read() if limit is None else response.read(limit)
         except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
             last = error
             time.sleep(1.2 * (attempt + 1))
@@ -195,6 +198,7 @@ def parse_notes(text: str) -> dict[str, object]:
         "title": str(body.get("title", "")).strip(),
         "dates": str(body.get("dates", "")).strip(),
         "description": str(body.get("description", "")).strip(),
+        "notes": str(body.get("notes") or body.get("note") or "").strip(),
         "tags": tags,
         "coordinates": parse_coords(str(body.get("coordinates", ""))),
         "cover": cover,
@@ -299,6 +303,85 @@ def geocode(query: str, cache: dict[str, list[float] | None]) -> tuple[float, fl
     return lat, lng
 
 
+EXIF_PROBE = 256 * 1024
+EXIF_MAX = 2 * 1024 * 1024
+
+
+def jpeg_exif_end(data: bytes) -> int | None:
+    """Byte count from the start of a JPEG through its Exif block, if that block is present."""
+    if len(data) < 4 or data[:2] != b"\xff\xd8":
+        return None
+    index = 2
+    while index + 4 <= len(data):
+        if data[index] != 0xFF:
+            return None
+        marker = data[index + 1]
+        if marker == 0xFF:
+            index += 1
+            continue
+        if marker in {0xD8, 0xD9, 0xDA} or 0xD0 <= marker <= 0xD7:
+            return None
+        length = int.from_bytes(data[index + 2 : index + 4], "big")
+        if length < 2:
+            return None
+        end = index + 2 + length
+        is_exif = marker == 0xE1 and index + 10 <= len(data) and data[index + 4 : index + 10] == b"Exif\x00\x00"
+        if is_exif:
+            return end
+        if end > len(data):
+            return None
+        index = end
+    return None
+
+
+def exif_prefix(url: str) -> bytes:
+    data = fetch_bytes(url, headers={"Range": f"bytes=0-{EXIF_PROBE - 1}"}, limit=EXIF_PROBE)
+    need = jpeg_exif_end(data)
+    if need is None or need <= len(data) or need > EXIF_MAX:
+        return data
+    return fetch_bytes(url, headers={"Range": f"bytes=0-{need - 1}"}, limit=need)
+
+
+def _ratio(value: object) -> float:
+    if isinstance(value, tuple) and len(value) == 2 and float(value[1]):
+        return float(value[0]) / float(value[1])
+    return float(value)
+
+
+def _dms(value: object) -> float | None:
+    if not isinstance(value, (tuple, list)) or len(value) < 3:
+        return None
+    degrees, minutes, seconds = (_ratio(part) for part in value[:3])
+    return degrees + minutes / 60 + seconds / 3600
+
+
+def _gps_ref(value: object) -> str:
+    if isinstance(value, bytes):
+        value = value.decode("ascii", "ignore")
+    return str(value).strip().upper()
+
+
+def gps_from_bytes(data: bytes) -> tuple[float, float] | None:
+    try:
+        with Image.open(BytesIO(data)) as image:
+            gps = image.getexif().get_ifd(0x8825)
+    except (UnidentifiedImageError, OSError, ValueError):
+        return None
+    if not gps:
+        return None
+    lat = _dms(gps.get(2))
+    lng = _dms(gps.get(4))
+    if lat is None or lng is None:
+        return None
+    if _gps_ref(gps.get(1, "N")).startswith("S"):
+        lat = -lat
+    if _gps_ref(gps.get(3, "E")).startswith("W"):
+        lng = -lng
+    if not (-90 <= lat <= 90 and -180 <= lng <= 180) or (lat == 0 and lng == 0):
+        return None
+    return round(lat, 6), round(lng, 6)
+
+
 def make_preview(data: bytes, dest: Path) -> tuple[int, int]:
     dest.parent.mkdir(parents=True, exist_ok=True)
     with Image.open(BytesIO(data)) as image:
@@ -350,6 +433,7 @@ def public_catalog(places: list[dict[str, object]], warn: bool = False) -> dict[
                 "title": title,
                 "dates": place["dates"],
                 "description": place["description"],
+                "notes": place["notes"],
                 "tags": place["tags"],
                 "lat": place["lat"],
                 "lng": place["lng"],
@@ -360,6 +444,8 @@ def public_catalog(places: list[dict[str, object]], warn: bool = False) -> dict[
                         "preview": photo["preview"],
                         "width": photo["width"],
                         "height": photo["height"],
+                        "lat": photo.get("lat"),
+                        "lng": photo.get("lng"),
                         "alt": f"{title} — {index}",
                     }
                     for index, photo in enumerate(photos, start=1)
@@ -402,6 +488,7 @@ def main() -> None:
                 "title": "",
                 "dates": "",
                 "description": "",
+                "notes": "",
                 "tags": [],
                 "coordinates": None,
             }
@@ -436,6 +523,7 @@ def main() -> None:
                     "title": title,
                     "dates": dates,
                     "description": parsed["description"],
+                    "notes": parsed["notes"],
                     "tags": parsed["tags"],
                     "coverName": parsed.get("cover", ""),
                     "lat": lat,
@@ -464,25 +552,56 @@ def main() -> None:
         image_url, preview, place_index = job
         dest = ROOT / "public" / preview.lstrip("/")
         record = manifest.get(image_url)
-        if (
+        cached = (
             not args.force
             and isinstance(record, dict)
             and record.get("preview") == preview
             and type(record.get("width")) is int
             and type(record.get("height")) is int
             and dest.exists()
-        ):
+        )
+        lat: float | None = None
+        lng: float | None = None
+        gps_known = False
+        if cached:
+            assert isinstance(record, dict)
             width, height = record["width"], record["height"]
+            if "lat" in record and "lng" in record:
+                lat = None if record["lat"] is None else float(record["lat"])
+                lng = None if record["lng"] is None else float(record["lng"])
+                gps_known = True
         else:
             try:
-                width, height = make_preview(fetch_bytes(image_url), dest)
+                original = fetch_bytes(image_url)
+                width, height = make_preview(original, dest)
+                coords = gps_from_bytes(original)
+                gps_known = True
+                if coords:
+                    lat, lng = coords
             except (urllib.error.URLError, TimeoutError, UnidentifiedImageError, OSError) as error:
                 with lock:
                     failed.append(f"{image_url} ({error})")
                     done += 1
                 print(f"  skip {image_url}: {error}")
                 return
-            record = {"preview": preview, "width": width, "height": height}
+        if cached and not gps_known:
+            try:
+                coords = gps_from_bytes(exif_prefix(image_url))
+                gps_known = True
+                if coords:
+                    lat, lng = coords
+            except (urllib.error.URLError, TimeoutError, OSError) as error:
+                print(f"  gps unread {image_url}: {error}")
+        if not isinstance(record, dict):
+            record = {}
+        record = {
+            "preview": preview,
+            "width": width,
+            "height": height,
+        }
+        if gps_known:
+            record["lat"] = lat
+            record["lng"] = lng
         name = urllib.parse.unquote(urllib.parse.urlparse(image_url).path.rsplit("/", 1)[-1])
         with lock:
             manifest[image_url] = record
@@ -495,6 +614,8 @@ def main() -> None:
                     "preview": preview,
                     "width": width,
                     "height": height,
+                    "lat": lat if gps_known else None,
+                    "lng": lng if gps_known else None,
                 }
             )
             done += 1
@@ -529,7 +650,8 @@ def main() -> None:
     catalog = public_catalog(places, warn=True)
     write_json(CATALOG_PATH, catalog)
     photo_count = sum(len(place["photos"]) for place in catalog["places"])
-    print(f"Wrote {CATALOG_PATH} ({len(catalog['places'])} places, {photo_count} photos)")
+    located = sum(1 for place in catalog["places"] for photo in place["photos"] if photo["lat"] is not None)
+    print(f"Wrote {CATALOG_PATH} ({len(catalog['places'])} places, {photo_count} photos, {located} with GPS)")
     if failed:
         print(f"{len(failed)} photos could not be previewed")
         for line in failed:
