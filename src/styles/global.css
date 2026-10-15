@@ -910,11 +910,17 @@ html.filters-pending .explorer {
 
 @media (max-width: 900px) {
   .explorer {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .explorer > * {
+    min-width: 0;
   }
 
   .filters {
     position: static;
+    width: 100%;
+    min-width: 0;
     max-height: none;
     flex-direction: column;
     gap: 16px;
@@ -932,6 +938,8 @@ html.filters-pending .explorer {
   }
 
   .filter-block:first-child .chip-list {
+    width: 100%;
+    min-width: 0;
     flex-wrap: nowrap;
     overflow-x: auto;
     padding-bottom: 6px;
@@ -992,7 +1000,13 @@ html.filters-pending .explorer {
   }
 
   .cards {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card,
+  .card-media {
+    min-width: 0;
+    max-width: 100%;
   }
 
   .to-top {
