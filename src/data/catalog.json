@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-15T22:41:59Z",
+  "generatedAt": "2026-10-15T22:48:31Z",
   "places": [
     {
       "slug": "2026-grand-canyon",
@@ -12290,7 +12290,7 @@
       "description": "The Emerald City.",
       "notes": "We got to spend couple days in Seattle before and after we went on our Alaskan cruise.",
       "tags": [
-        "Washington"
+        "washington"
       ],
       "lat": 47.6062,
       "lng": -122.3321,
@@ -12479,7 +12479,7 @@
       "description": "Fjords and glaciers.",
       "notes": "Pictures from the cruise ship's route through the Skagway fjords.",
       "tags": [
-        "Alaska"
+        "alaska"
       ],
       "lat": 59.4583,
       "lng": -135.3139,

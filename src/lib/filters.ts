@@ -29,7 +29,7 @@ export function readFilters(params: URLSearchParams): JournalFilters {
     tags: unique(
       (params.get("tag") ?? "")
         .split(",")
-        .map((value) => value.trim())
+        .map((value) => value.trim().toLowerCase())
         .filter(Boolean),
     ),
   };

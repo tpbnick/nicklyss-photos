@@ -185,7 +185,7 @@ def parse_notes(text: str) -> dict[str, object]:
     tags: list[str] = []
     for line in tag_text.splitlines():
         for piece in line.split(","):
-            tag = piece.strip().lstrip("#")
+            tag = piece.strip().lstrip("#").lower()
             if tag and tag not in tags:
                 tags.append(tag)
     cover = ""
