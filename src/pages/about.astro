@@ -1,4 +1,7 @@
 ---
+import { sitePath } from "../lib/url";
+
+const about = sitePath("/#about");
 ---
 
 <!doctype html>
@@ -6,13 +9,13 @@
   <head>
     <meta charset="utf-8" />
     <title>About · NickLyss</title>
-    <meta http-equiv="refresh" content="0;url=/#about" />
-    <link rel="canonical" href="/#about" />
-    <script is:inline>
-      location.replace("/#about");
+    <meta http-equiv="refresh" content={`0;url=${about}`} />
+    <link rel="canonical" href={about} />
+    <script is:inline define:vars={{ about }}>
+      location.replace(about);
     </script>
   </head>
   <body>
-    <p><a href="/#about">About NickLyss</a></p>
+    <p><a href={about}>About NickLyss</a></p>
   </body>
 </html>

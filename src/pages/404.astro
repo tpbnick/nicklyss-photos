@@ -1,10 +1,11 @@
 ---
 import Base from "../layouts/Base.astro";
+import { sitePath } from "../lib/url";
 ---
 
 <Base title="Not found" description="That page is not in the journal.">
   <article class="place" transition:animate="fade">
-    <a class="back" href="/">
+    <a class="back" href={sitePath("/")}>
       <span aria-hidden="true">←</span>
       All places
     </a>

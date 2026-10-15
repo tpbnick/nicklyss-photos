@@ -6,6 +6,7 @@ import AboutModal from "../components/AboutModal";
 import ThemeToggle from "../components/ThemeToggle";
 import catalog from "../data/catalog.json";
 import { commitShort, commitUrl, latestUpdate, repoUrl } from "../lib/site";
+import { sitePath } from "../lib/url";
 import type { Catalog } from "../lib/types";
 import "../styles/global.css";
 
@@ -40,7 +41,7 @@ const updated = latestUpdate(data.generatedAt);
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#100f0d" media="(prefers-color-scheme: dark)" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={sitePath("/favicon.svg")} />
     <title>{pageTitle}</title>
     <ClientRouter />
     <script is:inline>
@@ -163,7 +164,7 @@ const updated = latestUpdate(data.generatedAt);
     {
       chrome && (
         <header class="site-header">
-          <a class="brand" href="/">
+          <a class="brand" href={sitePath("/")}>
             <span class="brand-mark">NickLyss</span>
             <span class="brand-sub">Photo journal</span>
           </a>
@@ -173,7 +174,7 @@ const updated = latestUpdate(data.generatedAt);
                 About
               </a>
             </nav>
-            <form class="search" action="/" method="get" role="search">
+            <form class="search" action={sitePath("/")} method="get" role="search">
               <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
                 <path d="M16 16.5 20 20.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />

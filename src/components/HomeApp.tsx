@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { readFilters, sameList } from "../lib/filters";
+import { sitePath } from "../lib/url";
 import type { PlaceSummary } from "../lib/types";
 import { JournalMap } from "./JournalMap";
 import { SearchIcon } from "./Icons";
@@ -131,7 +132,7 @@ export default function HomeApp({ places, initialQuery, initialYears, initialTag
   return (
     <>
       <header className="site-header">
-        <a className="brand" href="/">
+        <a className="brand" href={sitePath("/")}>
           <h1 className="brand-mark">NickLyss</h1>
           <span className="brand-sub">Photo journal</span>
         </a>
@@ -185,11 +186,11 @@ export default function HomeApp({ places, initialQuery, initialYears, initialTag
             <div className="cards">
               {filtered.map((place, index) => (
                 <article className="card" key={place.slug}>
-                  <a className="card-link" href={`/places/${place.slug}`}>
+                  <a className="card-link" href={sitePath(`/places/${place.slug}`)}>
                     <div className="card-media">
                       {place.cover && (
                         <img
-                          src={place.cover}
+                          src={sitePath(place.cover)}
                           alt=""
                           loading={index < 3 ? "eager" : "lazy"}
                           decoding="async"

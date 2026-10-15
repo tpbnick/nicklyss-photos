@@ -53,3 +53,9 @@ Pins for new places are geocoded once and saved in `scripts/geocache.json`. Edit
 - `npm run catalog` reads the CDN and writes `src/data/catalog.json` plus `public/previews/`
 - `npm run dev` starts the site
 - `npm run build` writes a static site to `dist/`
+
+## Publish
+
+The **Update site** workflow rebuilds the catalog from the CDN, then publishes `dist/` to GitHub Pages. It runs only when you start it: Actions → Update site → Run workflow.
+
+In the repository, set Settings → Pages → Build and deployment → Source to **GitHub Actions** before the first run. The site is published at `https://tpbnick.github.io/nicklyss-photos/`. A custom domain configured in Pages is served from the domain root instead.

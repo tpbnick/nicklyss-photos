@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { RowsPhotoAlbum } from "react-photo-album";
 import PhotoSwipeLightbox from "photoswipe/lightbox";
 import type { Photo as JournalPhoto } from "../lib/types";
+import { sitePath } from "../lib/url";
 import "react-photo-album/rows.css";
 import "photoswipe/style.css";
 import "../styles/photoswipe.css";
@@ -27,7 +28,7 @@ export default function PhotoAlbum({ photos }: Props) {
     const lightbox = new PhotoSwipeLightbox({
       dataSource: photos.map((photo) => ({
         src: photo.src,
-        msrc: photo.preview,
+        msrc: sitePath(photo.preview),
         width: photo.width,
         height: photo.height,
         alt: photo.alt,
@@ -61,7 +62,7 @@ export default function PhotoAlbum({ photos }: Props) {
     <div className="place-album">
       <RowsPhotoAlbum
         photos={photos.map((photo) => ({
-          src: photo.preview,
+          src: sitePath(photo.preview),
           width: photo.width,
           height: photo.height,
           alt: photo.alt,

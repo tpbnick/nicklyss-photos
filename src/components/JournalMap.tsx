@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import type { PlaceSummary } from "../lib/types";
+import { sitePath } from "../lib/url";
 
 const LIGHT_STYLE = "https://tiles.openfreemap.org/styles/positron";
 const DARK_STYLE = "https://tiles.openfreemap.org/styles/dark";
@@ -107,7 +108,7 @@ export function JournalMap({ places }: Props) {
         if (place.lat == null || place.lng == null) continue;
         const link = document.createElement("a");
         link.className = "map-pin";
-        link.href = `/places/${place.slug}`;
+        link.href = sitePath(`/places/${place.slug}`);
         link.setAttribute("aria-label", place.title);
 
         const dot = document.createElement("span");
@@ -121,7 +122,7 @@ export function JournalMap({ places }: Props) {
             return;
           }
           event.preventDefault();
-          void navigate(`/places/${place.slug}`);
+          void navigate(sitePath(`/places/${place.slug}`));
         });
 
         markersRef.current.push(
