@@ -89,6 +89,17 @@ export function useBaseMap(
         scrollZoom: false,
       });
       map.addControl(new maplibre.NavigationControl({ showCompass: false }), "top-right");
+      let attributionCollapsed = false;
+      const collapseAttribution = () => {
+        if (attributionCollapsed) return;
+        const details = map.getContainer().querySelector<HTMLDetailsElement>("details.maplibregl-ctrl-attrib");
+        if (!details?.classList.contains("maplibregl-compact") || details.classList.contains("maplibregl-attrib-empty")) return;
+        details.classList.remove("maplibregl-compact-show");
+        details.removeAttribute("open");
+        attributionCollapsed = true;
+      };
+      map.on("sourcedata", collapseAttribution);
+      map.on("styledata", collapseAttribution);
       mapRef.current = map;
       onReadyRef.current({ map, maplibre });
 
@@ -97,6 +108,7 @@ export function useBaseMap(
         const next = styleForTheme();
         if (next === appliedStyle) return;
         appliedStyle = next;
+        attributionCollapsed = false;
         map.setStyle(next, { diff: false });
       });
       observer.observe(document.documentElement, {
