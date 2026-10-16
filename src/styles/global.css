@@ -243,63 +243,6 @@ html[data-theme="dark"] .icon-moon {
   box-shadow: var(--shadow);
 }
 
-.map-pin {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.map-pin-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  background: var(--accent);
-  border: 2px solid var(--pin-ring);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
-  transition: transform 0.25s var(--ease);
-}
-
-.map-pin:hover .map-pin-dot,
-.map-pin:focus-visible .map-pin-dot {
-  transform: scale(1.35);
-}
-
-.map-pin-label {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 8px);
-  transform: translateX(-50%) translateY(4px);
-  padding: 6px 9px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--bg);
-  font-size: 12px;
-  line-height: 1;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
-}
-
-.map-pin:hover .map-pin-label,
-.map-pin:focus-visible .map-pin-label,
-.map-pin.is-selected .map-pin-label {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-.map-pin.is-selected .map-pin-dot {
-  transform: scale(1.35);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 40%, transparent);
-}
-
 .explorer {
   width: min(1480px, calc(100% - 40px));
   margin: 22px auto 40px;
@@ -752,8 +695,7 @@ html[data-theme="dark"] .icon-moon {
 .theme-toggle:focus-visible,
 .to-top:focus-visible,
 .about-close:focus-visible,
-.about-meta a:focus-visible,
-.map-pin:focus-visible {
+.about-meta a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
