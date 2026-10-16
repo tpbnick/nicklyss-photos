@@ -43,9 +43,10 @@ function themeColors() {
 function clusterCollection(clusters: PhotoClusterPoint[]) {
   return {
     type: "FeatureCollection" as const,
-    features: clusters.map((cluster) => ({
+    features: clusters.map((cluster, index) => ({
       type: "Feature" as const,
-      id: cluster.id,
+      // Same integer-id rule as the homepage map. A photo URL is not a unique MapLibre id.
+      id: index + 1,
       properties: {
         id: cluster.id,
         title: `${cluster.count} ${cluster.count === 1 ? "photo" : "photos"}`,
@@ -246,12 +247,12 @@ export default function PhotoMap({ clusters, selectedId, onSelect }: Props) {
       map.setPaintProperty(HALO_LAYER, "circle-color", colors.dot);
       map.setPaintProperty(LABEL_LAYER, "text-color", colors.label);
       map.setPaintProperty(LABEL_LAYER, "text-halo-color", colors.halo);
-      for (const cluster of current) {
+      current.forEach((cluster, index) => {
         map.setFeatureState(
-          { source: SOURCE, id: cluster.id },
+          { source: SOURCE, id: index + 1 },
           { selected: cluster.id === selectedRef.current },
         );
-      }
+      });
       if (!fit || current.length === 0) return;
       const bounds = new maplibre.LngLatBounds();
       for (const cluster of current) bounds.extend([cluster.lng, cluster.lat]);

@@ -40,9 +40,11 @@ function locatedPlaces(places: PlaceSummary[]) {
 function placeCollection(places: PlaceSummary[]) {
   return {
     type: "FeatureCollection" as const,
-    features: locatedPlaces(places).map((place) => ({
+    features: locatedPlaces(places).map((place, index) => ({
         type: "Feature" as const,
-        id: place.slug,
+        // MapLibre keeps only the integer part of an id, so "2019-san-francisco-ca" becomes 2019
+        // and every place from that year shares one hover state.
+        id: index + 1,
         properties: { slug: place.slug, title: place.title },
         geometry: { type: "Point" as const, coordinates: [place.lng, place.lat] as [number, number] },
       })),
