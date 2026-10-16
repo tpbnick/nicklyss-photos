@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { readFilters, sameList } from "../lib/filters";
+import { hasEveryTag, readFilters, sameList } from "../lib/filters";
 import { sitePath } from "../lib/url";
 import type { PlaceSummary } from "../lib/types";
 import { JournalMap } from "./JournalMap";
@@ -88,7 +88,7 @@ export default function HomeApp({ places, initialQuery, initialYears, initialTag
           ({ place, text }) =>
             matchesText(text, words) &&
             (years.length === 0 || years.includes(place.year)) &&
-            (tags.length === 0 || place.tags.some((tag) => tags.includes(tag))),
+            hasEveryTag(place.tags, tags),
         )
         .map(({ place }) => place),
     [indexed, words, years, tags],
@@ -98,7 +98,7 @@ export default function HomeApp({ places, initialQuery, initialYears, initialTag
     const counts = new Map<number, number>();
     for (const { place, text } of indexed) {
       if (!matchesText(text, words)) continue;
-      if (tags.length && !place.tags.some((tag) => tags.includes(tag))) continue;
+      if (!hasEveryTag(place.tags, tags)) continue;
       counts.set(place.year, (counts.get(place.year) ?? 0) + 1);
     }
     const yearsSeen = new Set<number>();
@@ -109,16 +109,21 @@ export default function HomeApp({ places, initialQuery, initialYears, initialTag
   const tagChoices = useMemo(() => {
     const counts = new Map<string, number>();
     const names = new Set<string>();
-    for (const { place, text } of indexed) {
+    for (const { place } of indexed) {
       for (const tag of place.tags) names.add(tag);
+    }
+    for (const { place, text } of indexed) {
       if (!matchesText(text, words)) continue;
       if (years.length && !years.includes(place.year)) continue;
-      for (const tag of place.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      for (const tag of names) {
+        if (!place.tags.includes(tag) || !hasEveryTag(place.tags, tags, tag)) continue;
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
     }
     return [...names]
       .sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0) || a.localeCompare(b))
       .map((tag) => ({ tag, count: counts.get(tag) ?? 0 }));
-  }, [indexed, words, years]);
+  }, [indexed, words, years, tags]);
 
   const filtersActive = query.trim().length > 0 || years.length > 0 || tags.length > 0;
   const yearPool = yearChoices.reduce((sum, item) => sum + item.count, 0);
@@ -228,6 +233,11 @@ export default function HomeApp({ places, initialQuery, initialYears, initialTag
           <div className="filter-block">
             <div className="filter-head">
               <h2>Years</h2>
+              {years.length > 0 && (
+                <button type="button" className="text-button" aria-label="Clear years" onClick={() => setYears([])}>
+                  Clear
+                </button>
+              )}
             </div>
             <div className="chip-list">
               <button
@@ -258,9 +268,14 @@ export default function HomeApp({ places, initialQuery, initialYears, initialTag
           <div className="filter-block">
             <div className="filter-head">
               <h2>Tags</h2>
+              {tags.length > 0 && (
+                <button type="button" className="text-button" aria-label="Clear tags" onClick={() => setTags([])}>
+                  Clear
+                </button>
+              )}
             </div>
             {tagChoices.length === 0 ? (
-              <p className="filter-empty">Tags show up once a place has them in its notes.</p>
+              <p className="filter-empty">No tags yet.</p>
             ) : (
               <div className="chip-list">
                 {tagChoices.map(({ tag, count }) => (

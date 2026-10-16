@@ -1,37 +1,18 @@
 import { navigate } from "astro:transitions/client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { GeoJSONSource, Map as MapLibreMap, MapMouseEvent } from "maplibre-gl";
-import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import type { PlaceSummary } from "../lib/types";
 import { sitePath } from "../lib/url";
+import { HIT_RADIUS, featureAt, featureId, themeColors, useBaseMap } from "./useBaseMap";
 
-const LIGHT_STYLE = "https://tiles.openfreemap.org/styles/positron";
-const DARK_STYLE = "https://tiles.openfreemap.org/styles/dark";
 const SOURCE = "places";
 const HIT_LAYER = "place-hit";
 const PIN_LAYER = "place-pins";
 const LABEL_LAYER = "place-labels";
 
-type MapLibre = typeof import("maplibre-gl");
-
 type Props = {
   places: PlaceSummary[];
 };
-
-function styleForTheme() {
-  return document.documentElement.dataset.theme === "dark" ? DARK_STYLE : LIGHT_STYLE;
-}
-
-function themeColors() {
-  const style = getComputedStyle(document.documentElement);
-  const read = (name: string) => style.getPropertyValue(name).trim();
-  return {
-    dot: read("--accent"),
-    ring: read("--pin-ring"),
-    label: read("--bg"),
-    halo: read("--ink"),
-  };
-}
 
 function locatedPlaces(places: PlaceSummary[]) {
   return places.filter((place): place is PlaceSummary & { lat: number; lng: number } => place.lat != null && place.lng != null);
@@ -40,14 +21,12 @@ function locatedPlaces(places: PlaceSummary[]) {
 function placeCollection(places: PlaceSummary[]) {
   return {
     type: "FeatureCollection" as const,
-    features: locatedPlaces(places).map((place, index) => ({
-        type: "Feature" as const,
-        // MapLibre keeps only the integer part of an id, so "2019-san-francisco-ca" becomes 2019
-        // and every place from that year shares one hover state.
-        id: index + 1,
-        properties: { slug: place.slug, title: place.title },
-        geometry: { type: "Point" as const, coordinates: [place.lng, place.lat] as [number, number] },
-      })),
+    features: locatedPlaces(places).map((place) => ({
+      type: "Feature" as const,
+      id: featureId(place.slug),
+      properties: { slug: place.slug, title: place.title },
+      geometry: { type: "Point" as const, coordinates: [place.lng, place.lat] as [number, number] },
+    })),
   };
 }
 
@@ -57,6 +36,7 @@ function paintPins(map: MapLibreMap) {
   map.setPaintProperty(PIN_LAYER, "circle-stroke-color", colors.ring);
   map.setPaintProperty(LABEL_LAYER, "text-color", colors.label);
   map.setPaintProperty(LABEL_LAYER, "text-halo-color", colors.halo);
+  map.setPaintProperty(LABEL_LAYER, "text-halo-width", 0);
 }
 
 function ensurePlaces(map: MapLibreMap, places: PlaceSummary[]) {
@@ -75,7 +55,7 @@ function ensurePlaces(map: MapLibreMap, places: PlaceSummary[]) {
     type: "circle",
     source: SOURCE,
     paint: {
-      "circle-radius": 14,
+      "circle-radius": HIT_RADIUS,
       "circle-color": "#000000",
       "circle-opacity": 0.01,
     },
@@ -98,16 +78,16 @@ function ensurePlaces(map: MapLibreMap, places: PlaceSummary[]) {
     layout: {
       "text-field": ["get", "title"],
       "text-font": ["Noto Sans Regular"],
-      "text-size": 12,
+      "text-size": 13,
       "text-anchor": "bottom",
-      "text-offset": [0, -1.15],
+      "text-offset": [0, -1.7],
       "text-allow-overlap": true,
       "text-ignore-placement": true,
     },
     paint: {
       "text-color": colors.label,
       "text-halo-color": colors.halo,
-      "text-halo-width": 6,
+      "text-halo-width": 0,
       "text-halo-blur": 0,
       "text-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 1, 0],
     },
@@ -116,32 +96,17 @@ function ensurePlaces(map: MapLibreMap, places: PlaceSummary[]) {
 
 export function JournalMap({ places }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MapLibreMap | null>(null);
-  const libRef = useRef<MapLibre | null>(null);
   const placesRef = useRef(places);
-  const [ready, setReady] = useState(false);
   placesRef.current = places;
   const pinKey = places
     .filter((place) => place.lat != null && place.lng != null)
     .map((place) => `${place.slug}\t${place.lat}\t${place.lng}\t${place.title}`)
     .join("\n");
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    let disposed = false;
-    let observer: MutationObserver | null = null;
-    let resize: ResizeObserver | null = null;
+  const { mapRef, libRef, ready } = useBaseMap(containerRef, { center: [-98.5, 39.5], zoom: 3 }, ({ map }) => {
     let hovered: string | number | null = null;
 
-    const pinAt = (map: MapLibreMap, point: MapMouseEvent["point"]) => {
-      if (!map.getLayer(PIN_LAYER)) return undefined;
-      const layers = map.getLayer(HIT_LAYER) ? [HIT_LAYER, PIN_LAYER] : [PIN_LAYER];
-      return map.queryRenderedFeatures(point, { layers })[0];
-    };
-
-    const setHover = (map: MapLibreMap, id: string | number | null) => {
+    const setHover = (id: string | number | null) => {
       if (!map.getSource(SOURCE)) return;
       if (hovered != null && hovered !== id) {
         map.setFeatureState({ source: SOURCE, id: hovered }, { hover: false });
@@ -150,84 +115,30 @@ export function JournalMap({ places }: Props) {
       if (hovered != null) map.setFeatureState({ source: SOURCE, id: hovered }, { hover: true });
     };
 
-    void (async () => {
-      const maplibre = await import("maplibre-gl");
-      await import("maplibre-gl/dist/maplibre-gl.css");
-      if (disposed || !containerRef.current) return;
-
-      maplibre.setWorkerUrl(workerUrl);
-      libRef.current = maplibre;
-      const initialStyle = styleForTheme();
-      const map = new maplibre.Map({
-        container,
-        style: initialStyle,
-        center: [-98.5, 39.5],
-        zoom: 3,
-        attributionControl: { compact: true },
-        dragRotate: false,
-        pitchWithRotate: false,
-        scrollZoom: false,
-      });
-      map.addControl(new maplibre.NavigationControl({ showCompass: false }), "top-right");
-      mapRef.current = map;
-
-      const onClick = (event: MapMouseEvent) => {
-        const feature = pinAt(map, event.point);
-        const slug = feature?.properties?.slug;
-        if (!slug) return;
-        event.preventDefault();
-        const href = sitePath(`/places/${slug}`);
-        const mouse = event.originalEvent;
-        if (mouse.metaKey || mouse.ctrlKey || mouse.shiftKey || mouse.altKey) {
-          window.open(href, "_blank", "noopener");
-          return;
-        }
-        void navigate(href);
-      };
-      const onMove = (event: MapMouseEvent) => {
-        const feature = pinAt(map, event.point);
-        map.getCanvas().style.cursor = feature ? "pointer" : "";
-        const id = feature?.id;
-        setHover(map, id == null ? null : id);
-      };
-      const onLeave = () => {
-        map.getCanvas().style.cursor = "";
-        setHover(map, null);
-      };
-      map.on("click", onClick);
-      map.on("mousemove", onMove);
-      map.on("mouseout", onLeave);
-
-      let appliedStyle = initialStyle;
-      observer = new MutationObserver(() => {
-        const next = styleForTheme();
-        if (next === appliedStyle) return;
-        appliedStyle = next;
-        map.setStyle(next, { diff: false });
-      });
-      observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ["data-theme"],
-      });
-
-      resize = new ResizeObserver(() => map.resize());
-      resize.observe(container);
-      const markReady = () => {
-        if (!disposed) setReady(true);
-      };
-      if (map.isStyleLoaded()) markReady();
-      map.on("load", markReady);
-      map.on("style.load", markReady);
-    })();
-
-    return () => {
-      disposed = true;
-      observer?.disconnect();
-      resize?.disconnect();
-      mapRef.current?.remove();
-      mapRef.current = null;
-    };
-  }, []);
+    map.on("click", (event: MapMouseEvent) => {
+      const feature = featureAt(map, event.point, HIT_LAYER, PIN_LAYER);
+      const slug = feature?.properties?.slug;
+      if (!slug) return;
+      event.preventDefault();
+      const href = sitePath(`/places/${slug}`);
+      const mouse = event.originalEvent;
+      if (mouse.metaKey || mouse.ctrlKey || mouse.shiftKey || mouse.altKey) {
+        window.open(href, "_blank", "noopener");
+        return;
+      }
+      void navigate(href);
+    });
+    map.on("mousemove", (event: MapMouseEvent) => {
+      const feature = featureAt(map, event.point, HIT_LAYER, PIN_LAYER);
+      map.getCanvas().style.cursor = feature ? "pointer" : "";
+      const id = feature?.id;
+      setHover(id == null ? null : id);
+    });
+    map.on("mouseout", () => {
+      map.getCanvas().style.cursor = "";
+      setHover(null);
+    });
+  });
 
   useEffect(() => {
     const map = mapRef.current;
@@ -254,7 +165,7 @@ export function JournalMap({ places }: Props) {
     return () => {
       map.off("style.load", onStyle);
     };
-  }, [pinKey, ready]);
+  }, [pinKey, ready, mapRef, libRef]);
 
   return <div ref={containerRef} className="map-canvas" role="region" aria-label="Map of places" />;
 }

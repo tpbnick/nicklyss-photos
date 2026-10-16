@@ -18,7 +18,6 @@ function git(args: string): string {
 }
 
 const [commitHash = "", commitDate = ""] = git("log -1 --format=%H%x09%cI").split("\t");
-export { commitHash };
 export const commitShort = commitHash.slice(0, 7);
 export const commitUrl = commitHash ? `${repoUrl}/commit/${commitHash}` : repoUrl;
 

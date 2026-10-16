@@ -38,3 +38,7 @@ export function readFilters(params: URLSearchParams): JournalFilters {
 export function sameList<T>(left: readonly T[], right: readonly T[]) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
+
+export function hasEveryTag(placeTags: readonly string[], selected: readonly string[], skip?: string) {
+  return selected.every((tag) => tag === skip || placeTags.includes(tag));
+}

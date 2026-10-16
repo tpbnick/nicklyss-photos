@@ -5,7 +5,7 @@ import PhotoMap from "./PhotoMap";
 
 const CLUSTER_METERS = 200;
 
-export type PhotoCluster = {
+type PhotoCluster = {
   id: string;
   lat: number;
   lng: number;
@@ -22,7 +22,7 @@ function metersBetween(a: { lat: number; lng: number }, b: { lat: number; lng: n
   return 2 * earth * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-export function clusterPhotos(photos: Photo[]): PhotoCluster[] {
+function clusterPhotos(photos: Photo[]): PhotoCluster[] {
   const located = photos.flatMap((photo, index) =>
     photo.lat != null && photo.lng != null ? [{ photo, index, lat: photo.lat, lng: photo.lng }] : [],
   );
